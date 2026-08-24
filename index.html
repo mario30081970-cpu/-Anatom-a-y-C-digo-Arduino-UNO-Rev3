@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>TP Simulador: Anatomía y Programación de Arduino UNO Rev3</title>
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --bg-accent: #1f3a4b;
+            --texto: #e2e8f0;
+            --texto-sec: #94a3b8;
+            --verde: #2ecc71;
+            --verde-oscuro: #27ae60;
+            --azul: #00979d;
+            --azul-claro: #00b4d8;
+            --ambar: #f1c40f;
+            --rojo: #e74c3c;
+            --borde: #475569;
+            --radio: 12px;
+            --fuente: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--fuente);
+            background-color: var(--bg-body);
+            color: var(--texto);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--bg-card);
+            border-radius: var(--radio);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 6px solid var(--azul);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--azul);
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--texto-sec);
+        }
+
+        .formulario {
+            background-color: var(--bg-card);
+            border-radius: var(--radio);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--borde);
+        }
+
+        .formulario h2 {
+            font-size: 1.2rem;
+            color: var(--azul);
+            margin-bottom: 10px;
+        }
+
+        .campo {
+            margin-bottom: 12px;
+        }
+
+        .campo label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--texto-sec);
+            margin-bottom: 4px;
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--borde);
+            border-radius: 6px;
+            color: var(--texto);
+            font-family: var(--fuente);
+            font-size: 0.9rem;
+        }
+
+        .modulo {
+            background-color: var(--bg-card);
+            border-radius: var(--radio);
+            margin-bottom: 15px;
+            border: 1px solid var(--borde);
+            overflow: hidden;
+        }
+
+        .modulo > summary {
+            background-color: var(--bg-accent);
+            color: white;
+            padding: 14px 16px;
+            font-weight: bold;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            border-bottom: 2px solid var(--azul);
+        }
+
+        .modulo > summary::after {
+            content: "▼";
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .modulo[open] > summary::after {
+            transform: rotate(180deg);
+        }
+
+        .modulo > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .contenido-modulo {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .introduccion {
+            font-size: 0.9rem;
+            color: var(--texto-sec);
+            background-color: rgba(0, 151, 157, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--azul);
+            line-height: 1.5;
+        }
+
+        .pregunta {
+            background-color: var(--bg-input);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 4px solid var(--azul);
+            transition: border-color 0.3s;
+        }
+
+        .pregunta.correcta {
+            border-left-color: var(--verde);
+        }
+        .pregunta.incorrecta {
+            border-left-color: var(--rojo);
+        }
+
+        .pregunta .texto-pregunta {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .opcion-btn {
+            background-color: #2c3440;
+            border: 2px solid var(--borde);
+            border-radius: 6px;
+            padding: 10px 12px;
+            text-align: left;
+            color: var(--texto);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .opcion-btn.seleccionada {
+            border-color: var(--azul);
+            background-color: var(--bg-accent);
+        }
+        .opcion-btn.correcta {
+            border-color: var(--verde);
+            background-color: rgba(46, 204, 113, 0.2);
+        }
+        .opcion-btn.incorrecta {
+            border-color: var(--rojo);
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+
+        .retroalimentacion {
+            font-size: 0.8rem;
+            color: var(--texto-sec);
+            padding: 6px 8px;
+            border-radius: 4px;
+            background-color: #1a1a1a;
+            display: none;
+        }
+        .retroalimentacion.mostrar {
+            display: block;
+        }
+
+        .textarea-respuesta {
+            width: 100%;
+            min-height: 70px;
+            background-color: #2c3440;
+            border: 1px solid var(--borde);
+            border-radius: 6px;
+            color: var(--texto);
+            padding: 8px;
+            font-family: var(--fuente);
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .puntaje {
+            background-color: var(--bg-card);
+            border-radius: var(--radio);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--borde);
+            text-align: center;
+        }
+
+        .puntaje h3 {
+            color: var(--azul);
+            margin-bottom: 5px;
+        }
+
+        .puntaje .porcentaje {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--verde);
+        }
+
+        .btn-descargar {
+            background-color: var(--verde-oscuro);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.2s, opacity 0.2s;
+            touch-action: manipulation;
+        }
+        .btn-descargar:disabled {
+            background-color: #555;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-descargar:not(:disabled):active {
+            background-color: var(--verde);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #777;
+        }
+
+        @media (max-width: 768px) {
+            .opcion-btn {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🤖 Anatomía y Código Arduino UNO Rev3</h1>
+            <p>Trabajo Práctico Interactivo - Robótica e Informática Aplicada</p>
+        </header>
+
+        <!-- FORMULARIO DE IDENTIFICACIÓN -->
+        <section class="formulario">
+            <h2>📋 Identificación del Estudiante</h2>
+            <div class="campo">
+                <label for="nombre">Nombre y Apellido *</label>
+                <input type="text" id="nombre" placeholder="Ingrese su nombre completo" required>
+            </div>
+            <div class="campo">
+                <label for="curso">Curso *</label>
+                <input type="text" id="curso" placeholder="Ej: 1° Año, 4° Año, etc." required>
+            </div>
+            <div class="campo">
+                <label for="division">División *</label>
+                <input type="text" id="division" placeholder="Ej: A, B, C..." required>
+            </div>
+        </section>
+
+        <!-- MÓDULOS GENERADOS POR JS -->
+        <div id="modulos"></div>
+
+        <!-- PUNTAJE -->
+        <div class="puntaje">
+            <h3>Puntaje Actual</h3>
+            <div class="porcentaje" id="porcentajePuntaje">0%</div>
+        </div>
+
+        <!-- BOTÓN DESCARGA -->
+        <button class="btn-descargar" id="btnDescargar" disabled>📥 DESCARGAR COMPROBANTE DE TRABAJO PRÁCTICO</button>
+
+        <footer>
+            TP Simulador - Anatomía y Código Arduino UNO | Uso educativo
+        </footer>
+    </div>
+
+    <script>
+    (function() {
+        // ===== BASE DE DATOS DE PREGUNTAS =====
+        const preguntas = [
+            // MÓDULO 1: Sistema de Alimentación y Anatomía General
+            {
+                id: 'm1_q1',
+                modulo: 1,
+                tipo: 'mc',
+                texto: '¿Cuál es el rango de voltaje recomendado para el conector Jack de Arduino UNO?',
+                opciones: [
+                    '3.3V a 5V',
+                    '7V a 12V DC',
+                    '12V a 24V AC',
+                    '220V directamente'
+                ],
+                correcta: 1,
+                explicacion: 'El conector Jack acepta entre 7 y 12 voltios de corriente continua para regular internamente a 5V.'
+            },
+            {
+                id: 'm1_q2',
+                modulo: 1,
+                tipo: 'mc',
+                texto: '¿Qué función cumplen los pines GND (Masa) en la placa?',
+                opciones: [
+                    'Proveer 5V de alimentación',
+                    'Cerrar el circuito y proporcionar referencia de 0V',
+                    'Transmitir datos seriales',
+                    'Activar el botón de reset'
+                ],
+                correcta: 1,
+                explicacion: 'Los pines GND son la referencia común de 0 voltios y permiten cerrar el circuito eléctrico.'
+            },
+            {
+                id: 'm1_q3',
+                modulo: 1,
+                tipo: 'desarrollo',
+                texto: 'Explique brevemente la función del cristal oscilador de 16 MHz en Arduino UNO.'
+            },
+
+            // MÓDULO 2: El Cerebro y Entorno de Desarrollo
+            {
+                id: 'm2_q1',
+                modulo: 2,
+                tipo: 'mc',
+                texto: '¿Cuál es el microcontrolador principal de la placa Arduino UNO Rev3?',
+                opciones: [
+                    'ATmega2560',
+                    'ATmega328P',
+                    'ESP32',
+                    'Raspberry Pi RP2040'
+                ],
+                correcta: 1,
+                explicacion: 'El ATmega328P es el cerebro de la placa, encargado de ejecutar el código cargado.'
+            },
+            {
+                id: 'm2_q2',
+                modulo: 2,
+                tipo: 'mc',
+                texto: 'Antes de cargar un programa en Arduino IDE, ¿qué dos configuraciones son indispensables?',
+                opciones: [
+                    'Seleccionar la placa y el puerto COM',
+                    'Elegir el idioma y el tema',
+                    'Configurar el brillo de la pantalla',
+                    'Instalar un antivirus'
+                ],
+                correcta: 0,
+                explicacion: 'Es necesario seleccionar el modelo de placa (Arduino Uno) y el puerto de comunicación (COMx) para cargar el código.'
+            },
+            {
+                id: 'm2_q3',
+                modulo: 2,
+                tipo: 'mc',
+                texto: '¿Qué regla de oro de seguridad eléctrica se debe aplicar antes de conectar el cable USB?',
+                opciones: [
+                    'Conectar primero la alimentación externa',
+                    'Verificar la polaridad y las conexiones para evitar cortocircuitos',
+                    'Tocar los componentes con las manos húmedas',
+                    'No importa el orden de conexión'
+                ],
+                correcta: 1,
+                explicacion: 'Revisar que todo esté correctamente conectado previene daños por polaridad invertida o cortocircuitos.'
+            },
+
+            // MÓDULO 3: La Acción Digital
+            {
+                id: 'm3_q1',
+                modulo: 3,
+                tipo: 'mc',
+                texto: '¿Qué voltaje representa el estado HIGH en un pin digital?',
+                opciones: [
+                    '0V',
+                    '3.3V',
+                    '5V',
+                    '12V'
+                ],
+                correcta: 2,
+                explicacion: 'HIGH equivale a 5 voltios (encendido lógico) en la mayoría de pines digitales.'
+            },
+            {
+                id: 'm3_q2',
+                modulo: 3,
+                tipo: 'mc',
+                texto: '¿Qué función se utiliza para leer el estado de un pin digital?',
+                opciones: [
+                    'analogRead()',
+                    'digitalWrite()',
+                    'digitalRead()',
+                    'pinMode()'
+                ],
+                correcta: 2,
+                explicacion: 'digitalRead() devuelve HIGH o LOW según el voltaje presente en el pin.'
+            },
+            {
+                id: 'm3_q3',
+                modulo: 3,
+                tipo: 'mc',
+                texto: '¿Qué LED integrado en la placa está soldado físicamente al pin 13?',
+                opciones: [
+                    'LED ON (encendido)',
+                    'LED TX/RX',
+                    'LED L',
+                    'LED de depuración'
+                ],
+                correcta: 2,
+                explicacion: 'El LED marcado como "L" está conectado directamente al pin 13 y sirve para pruebas básicas.'
+            },
+
+            // MÓDULO 4: Sentidos Analógicos y PWM
+            {
+                id: 'm4_q1',
+                modulo: 4,
+                tipo: 'mc',
+                texto: '¿Qué rango de valores devuelve la función analogRead() en un pin analógico?',
+                opciones: [
+                    '0 a 255',
+                    '0 a 1023',
+                    '0 a 5',
+                    '0 a 4095'
+                ],
+                correcta: 1,
+                explicacion: 'El conversor analógico-digital de 10 bits entrega valores entre 0 y 1023.'
+            },
+            {
+                id: 'm4_q2',
+                modulo: 4,
+                tipo: 'mc',
+                texto: '¿Cuáles de los siguientes pines soportan salida PWM (marcados con ~)?',
+                opciones: [
+                    '3, 5, 6, 9, 10, 11',
+                    '0, 1, 2, 13',
+                    'A0, A1, A2',
+                    'Solo el pin 13'
+                ],
+                correcta: 0,
+                explicacion: 'Los pines 3, 5, 6, 9, 10 y 11 permiten analogWrite() para simular señales analógicas mediante PWM.'
+            },
+            {
+                id: 'm4_q3',
+                modulo: 4,
+                tipo: 'mc',
+                texto: 'Para atenuar el brillo de un LED o variar la velocidad de un motor, se debe usar:',
+                opciones: [
+                    'digitalWrite() en cualquier pin',
+                    'analogWrite() en un pin PWM',
+                    'analogRead() en un pin PWM',
+                    'No es posible variar intensidad'
+                ],
+                correcta: 1,
+                explicacion: 'analogWrite() genera una señal PWM que controla la potencia media entregada al componente.'
+            },
+            {
+                id: 'm4_q4',
+                modulo: 4,
+                tipo: 'desarrollo',
+                texto: 'Describa un caso práctico donde usaría un pin analógico para leer un sensor y un pin PWM para actuar en consecuencia.'
+            },
+
+            // MÓDULO 5: Estructura de Código y Proyectos Prácticos
+            {
+                id: 'm5_q1',
+                modulo: 5,
+                tipo: 'mc',
+                texto: 'En el código "Blink", ¿en qué función se configura el pin 13 como salida?',
+                opciones: [
+                    'void loop()',
+                    'void setup()',
+                    'digitalWrite()',
+                    'delay()'
+                ],
+                correcta: 1,
+                explicacion: 'Dentro de setup() se ejecuta pinMode(13, OUTPUT) una única vez al inicio.'
+            },
+            {
+                id: 'm5_q2',
+                modulo: 5,
+                tipo: 'mc',
+                texto: '¿Qué hace la instrucción delay(1000);?',
+                opciones: [
+                    'Detiene el programa 1 segundo',
+                    'Enciende un LED por 1000 ms',
+                    'Configura el pin 1000',
+                    'Espera 1000 microsegundos'
+                ],
+                correcta: 0,
+                explicacion: 'delay(1000) pausa la ejecución durante 1000 milisegundos (1 segundo).'
+            },
+            {
+                id: 'm5_q3',
+                modulo: 5,
+                tipo: 'mc',
+                texto: '¿Cuál de las siguientes líneas tiene un error de sintaxis?',
+                opciones: [
+                    'digitalWrite(13, HIGH);',
+                    'pinMode(13, OUTPUT);',
+                    'delay(1000);',
+                    'digitalWrite(13, HIGH)  // falta ;'
+                ],
+                correcta: 3,
+                explicacion: 'Falta el punto y coma al final de la instrucción, lo que genera error de compilación.'
+            },
+            {
+                id: 'm5_q4',
+                modulo: 5,
+                tipo: 'desarrollo',
+                texto: 'Proponga un proyecto práctico con Arduino UNO (semáforo, luz nocturna, barrera móvil) e indique qué pines usaría y por qué.'
+            }
+        ];
+
+        // ===== ESTADO DE RESPUESTAS =====
+        const respuestas = {}; // { id_pregunta: { seleccion: indice, correcta: bool } o { texto: string } }
+
+        // ===== REFERENCIAS DOM =====
+        const nombreInput = document.getElementById('nombre');
+        const cursoInput = document.getElementById('curso');
+        const divisionInput = document.getElementById('division');
+        const porcentajeSpan = document.getElementById('porcentajePuntaje');
+        const btnDescargar = document.getElementById('btnDescargar');
+        const modulosContainer = document.getElementById('modulos');
+
+        // ===== RENDERIZAR MÓDULOS Y PREGUNTAS =====
+        function construirModulos() {
+            const modulosData = [
+                { num: 1, titulo: '📡 Módulo 1: Sistema de Alimentación y Anatomía General', intro: 'El Arduino UNO Rev3 posee múltiples opciones de alimentación y componentes esenciales para su funcionamiento autónomo.' },
+                { num: 2, titulo: '🧠 Módulo 2: El Cerebro y Entorno de Desarrollo (IDE)', intro: 'El ATmega328P es el procesador central, y el IDE permite programarlo mediante una configuración específica.' },
+                { num: 3, titulo: '💡 Módulo 3: La Acción Digital (Pines 0 al 13)', intro: 'Los pines digitales trabajan con estados binarios HIGH y LOW, controlados por funciones de lectura y escritura.' },
+                { num: 4, titulo: '📈 Módulo 4: Sentidos Analógicos (A0-A5) y Salidas PWM', intro: 'Los pines analógicos leen valores continuos y los PWM permiten simular salidas variables mediante ciclos de trabajo.' },
+                { num: 5, titulo: '⚙️ Módulo 5: Estructura de Código y Proyectos Prácticos', intro: 'La estructura fundamental de todo programa Arduino incluye setup() y loop(), junto con instrucciones de retardo y control.' }
+            ];
+
+            modulosData.forEach(modInfo => {
+                const details = document.createElement('details');
+                details.className = 'modulo';
+                details.open = (modInfo.num === 1); // abrir primer módulo
+                const summary = document.createElement('summary');
+                summary.textContent = modInfo.titulo;
+                details.appendChild(summary);
+
+                const contenedor = document.createElement('div');
+                contenedor.className = 'contenido-modulo';
+
+                // Introducción
+                const introDiv = document.createElement('div');
+                introDiv.className = 'introduccion';
+                introDiv.textContent = modInfo.intro;
+                contenedor.appendChild(introDiv);
+
+                // Preguntas de este módulo
+                const preguntasMod = preguntas.filter(p => p.modulo === modInfo.num);
+                preguntasMod.forEach(pregunta => {
+                    const divPregunta = document.createElement('div');
+                    divPregunta.className = 'pregunta';
+                    divPregunta.id = pregunta.id;
+
+                    const textoPregunta = document.createElement('div');
+                    textoPregunta.className = 'texto-pregunta';
+                    textoPregunta.textContent = pregunta.texto;
+                    divPregunta.appendChild(textoPregunta);
+
+                    if (pregunta.tipo === 'mc') {
+                        const opcionesDiv = document.createElement('div');
+                        opcionesDiv.className = 'opciones';
+
+                        pregunta.opciones.forEach((opcion, idx) => {
+                            const btn = document.createElement('button');
+                            btn.className = 'opcion-btn';
+                            btn.textContent = `${String.fromCharCode(65 + idx)}) ${opcion}`;
+                            btn.dataset.preguntaId = pregunta.id;
+                            btn.dataset.indice = idx;
+                            btn.addEventListener('click', manejarSeleccion);
+                            opcionesDiv.appendChild(btn);
+                        });
+                        divPregunta.appendChild(opcionesDiv);
+
+                        const retroDiv = document.createElement('div');
+                        retroDiv.className = 'retroalimentacion';
+                        retroDiv.id = `retro-${pregunta.id}`;
+                        divPregunta.appendChild(retroDiv);
+                    } else {
+                        // Pregunta abierta
+                        const textarea = document.createElement('textarea');
+                        textarea.className = 'textarea-respuesta';
+                        textarea.placeholder = 'Escriba su respuesta...';
+                        textarea.dataset.preguntaId = pregunta.id;
+                        textarea.addEventListener('input', (e) => {
+                            respuestas[pregunta.id] = { texto: e.target.value };
+                            validarCampos();
+                        });
+                        divPregunta.appendChild(textarea);
+                    }
+
+                    contenedor.appendChild(divPregunta);
+                });
+
+                details.appendChild(contenedor);
+                modulosContainer.appendChild(details);
+            });
+        }
+
+        // ===== MANEJAR SELECCIÓN MÚLTIPLE =====
+        function manejarSeleccion(e) {
+            const btn = e.currentTarget;
+            const preguntaId = btn.dataset.preguntaId;
+            const indice = parseInt(btn.dataset.indice);
+            const pregunta = preguntas.find(p => p.id === preguntaId);
+
+            // Evitar doble respuesta
+            if (respuestas[preguntaId]) return;
+
+            // Deshabilitar todas las opciones de esta pregunta
+            const opciones = document.querySelectorAll(`.opcion-btn[data-pregunta-id="${preguntaId}"]`);
+            opciones.forEach(op => op.disabled = true);
+
+            // Marcar seleccionada
+            btn.classList.add('seleccionada');
+
+            // Determinar si es correcta
+            const esCorrecta = indice === pregunta.correcta;
+            respuestas[preguntaId] = { seleccion: indice, correcta: esCorrecta };
+
+            // Mostrar retroalimentación
+            const retroDiv = document.getElementById(`retro-${preguntaId}`);
+            retroDiv.classList.add('mostrar');
+            if (esCorrecta) {
+                btn.classList.add('correcta');
+                retroDiv.textContent = `✅ Correcto. ${pregunta.explicacion}`;
+                retroDiv.style.color = 'var(--verde)';
+            } else {
+                btn.classList.add('incorrecta');
+                // Resaltar la correcta
+                opciones[pregunta.correcta].classList.add('correcta');
+                retroDiv.textContent = `❌ Incorrecto. La respuesta correcta es la ${String.fromCharCode(65 + pregunta.correcta)}). ${pregunta.explicacion}`;
+                retroDiv.style.color = 'var(--rojo)';
+            }
+
+            // Actualizar puntaje
+            actualizarPuntaje();
+            validarCampos();
+        }
+
+        // ===== ACTUALIZAR PUNTAJE =====
+        function actualizarPuntaje() {
+            const preguntasMC = preguntas.filter(p => p.tipo === 'mc');
+            const respondidas = preguntasMC.filter(p => respuestas[p.id] && respuestas[p.id].correcta !== undefined);
+            const correctas = respondidas.filter(p => respuestas[p.id].correcta).length;
+            const porcentaje = respondidas.length > 0 ? Math.round((correctas / preguntasMC.length) * 100) : 0;
+            porcentajeSpan.textContent = `${porcentaje}%`;
+            return { correctas, total: preguntasMC.length, porcentaje };
+        }
+
+        // ===== VALIDAR CAMPOS OBLIGATORIOS =====
+        function validarCampos() {
+            const nombre = nombreInput.value.trim();
+            const curso = cursoInput.value.trim();
+            const division = divisionInput.value.trim();
+            const habilitado = nombre !== '' && curso !== '' && division !== '';
+            btnDescargar.disabled = !habilitado;
+        }
+
+        // Asignar eventos a campos de identificación
+        [nombreInput, cursoInput, divisionInput].forEach(input => {
+            input.addEventListener('input', validarCampos);
+        });
+
+        // ===== GENERAR DESCARGA =====
+        function generarDescarga() {
+            const nombre = nombreInput.value.trim();
+            const curso = cursoInput.value.trim();
+            const division = divisionInput.value.trim();
+            const fecha = new Date().toLocaleString('es-AR');
+            const resultado = actualizarPuntaje();
+            const porcentaje = resultado.porcentaje;
+
+            let contenido = `======================================================\n`;
+            contenido += `INFORME DE EVALUACIÓN - ANATOMÍA Y CÓDIGO ARDUINO UNO\n`;
+            contenido += `======================================================\n`;
+            contenido += `Estudiante: ${nombre}\n`;
+            contenido += `Curso: ${curso} | División: ${division}\n`;
+            contenido += `Fecha y Hora de realización: ${fecha}\n`;
+            contenido += `Calificación Obtenida: ${porcentaje}%\n`;
+            contenido += `------------------------------------------------------\n`;
+            contenido += `DETALLE DE RESPUESTAS REGISTRADAS:\n`;
+
+            preguntas.forEach((pregunta, index) => {
+                contenido += `\n${index + 1}. ${pregunta.texto}\n`;
+                if (pregunta.tipo === 'mc') {
+                    const resp = respuestas[pregunta.id];
+                    if (resp) {
+                        const opcionElegida = pregunta.opciones[resp.seleccion];
+                        contenido += `   Opción seleccionada: ${String.fromCharCode(65 + resp.seleccion)}) ${opcionElegida}\n`;
+                        contenido += `   Estado: ${resp.correcta ? 'Correcta' : 'Incorrecta'}\n`;
+                        if (!resp.correcta) {
+                            const correctaTexto = pregunta.opciones[pregunta.correcta];
+                            contenido += `   Respuesta correcta: ${String.fromCharCode(65 + pregunta.correcta)}) ${correctaTexto}\n`;
+                        }
+                    } else {
+                        contenido += `   Sin responder.\n`;
+                    }
+                } else {
+                    const resp = respuestas[pregunta.id];
+                    contenido += `   Texto desarrollado: ${resp ? resp.texto : 'Sin respuesta.'}\n`;
+                }
+            });
+
+            contenido += `======================================================\n`;
+
+            // Sanitizar nombre para archivo
+            const nombreArchivo = nombre.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '').replace(/\s+/g, '_') || 'Alumno';
+            const nombreFinal = `TP_Arduino_UNO_${nombreArchivo}_${curso.replace(/\s+/g, '_')}.txt`;
+
+            const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombreFinal;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        btnDescargar.addEventListener('click', generarDescarga);
+
+        // ===== INICIALIZAR =====
+        function init() {
+            construirModulos();
+            validarCampos();
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
